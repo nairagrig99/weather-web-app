@@ -3,7 +3,7 @@ import {useEffect, useState} from "react";
 import LocationSearch from "./components/LocationSearch.tsx";
 import CurrentConditions from "./components/CurrentConditions.tsx";
 
-const API_KEY = "Q8MDD8LU9HD8YHPFDNAVZQLAS";
+const API_KEY = import.meta.env.VITE_API_KEY;
 
 function App() {
     const [locationResponse, setLocation] = useState(null);
@@ -13,14 +13,12 @@ function App() {
     function getCurrentLocation(location: string) {
         fetch(`https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}/yesterday/tomorrow?unitGroup=metric&include=hours&key=${API_KEY}`)
             .then((response) => {
-                console.log("response", response)
                 if (!response.ok) {
                     throw new Error("Something went wrong")
                 }
 
                 return response.json()
             }).then(async (data) => {
-            console.log('name', data);
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?format=json&lat=${data.latitude}&lon=${data.longitude}`
             );
@@ -42,7 +40,6 @@ function App() {
                 locationName = `${settlement}`.trim();
             }
 
-            console.log("locationName", locationName)
             const locationToSave = {...data, name: locationName};
 
             localStorage.setItem('location', JSON.stringify(locationToSave));
@@ -58,23 +55,23 @@ function App() {
 
     useEffect(() => {
 
-        const savedLocationString = localStorage.getItem('location')
+        const savedLocationString = localStorage.getItem('location');
+
         if (savedLocationString) {
             const savedLocation = JSON.parse(savedLocationString);
-            console.log("savedLocation",savedLocation)
             setLocation(savedLocation)
             setLoading(false)
             return
         }
-        navigator.geolocation.getCurrentPosition((position) => {
-            console.log("position", position);
 
+        navigator.geolocation.getCurrentPosition((position) => {
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
 
             const location = `${latitude},${longitude}`;
             getCurrentLocation(location)
-        })
+        });
+
     }, []);
 
 
